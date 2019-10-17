@@ -1,26 +1,34 @@
 class Player
-    attr_reader :name, :incorrect_guesses, :guesses_remaining
-    attr_writer :guesses_remaining, :incorrect_guesses
+    attr_reader :name, :incorrect_guesses, :guesses_remaining, :correct_guesses
+    attr_writer :guesses_remaining, :incorrect_guesses, :correct_guesses
 
     def initialize(name)
         @name = name
         @guesses_remaining = 6
         @incorrect_guesses = []
+        @correct_guesses = []
     end
 
     def get_guess
-        puts "Guess a letter."
+        print "Guess a letter: "
         guess = gets.chomp
         if valid_guess?(guess)
             return guess
         else
-            puts "Not a letter! Guess again."
             self.get_guess
         end
     end
 
     def valid_guess?(guess)
-       guess.match?(/\A[a-zA-z]\z/)
+        if !guess.match?(/\A[a-zA-z]\z/)
+            puts "Not a letter! Guess again."
+            return false
+        elsif @incorrect_guesses.include?(guess) || @correct_guesses.include?(guess)
+            puts "You already guessed that letter. Guess again.\n\n"
+            return false
+        else
+            return true
+        end
     end
 
 end
