@@ -3,6 +3,8 @@ require 'httparty'
 class Game
     attr_reader :secret_word, :game_word
 
+    # Initialize: pull the dictionary from the REACH API. Pick a secret word at random from the dictionary
+    # if it has not already been passed as an argument. Pass in the players. 
     def initialize(player, passed_word = nil)
         url = "http://app.linkedin-reach.io/words"
         response = HTTParty.get(url)
@@ -14,13 +16,16 @@ class Game
         @player = player 
     end
 
+    # play_round: implements basic game logic. Get a guess from the player. 
+    # If it's a correct guess, show the occurences of that letter in the secret word. Update
+    # player's correct guesses list.
+    # If it's not a correct guess, let the player know, update incorrect guess list.
+    # Either way update the player on their incorrect guesses and guesses remaining. 
     def play_round
         puts @game_word + "\n\n"
         guess = @player.get_guess[0]
         if @secret_word.include?(guess)
             puts "That letter is in the secret word!"
-            puts "Incorrect guesses: #{@player.incorrect_guesses}"
-            puts "Guesses remaining: #{@player.guesses_remaining}"
             @player.correct_guesses += [guess]
             (0..@secret_word.length).each do |index|
                 if @secret_word[index] == guess
@@ -31,13 +36,14 @@ class Game
             puts "That letter is not in the secret word."
             @player.guesses_remaining -= 1
             @player.incorrect_guesses += [guess]
-            puts "Incorrect guesses: #{@player.incorrect_guesses}"
-            puts "Guesses remaining: #{@player.guesses_remaining}"
         end
+        puts "Incorrect guesses: #{@player.incorrect_guesses}"
+        puts "Guesses remaining: #{@player.guesses_remaining}"
         puts "_____________________________________"
         puts "\n\n"
     end
 
+    # game_over: check if the win/lose conditions are met
     def game_over?
         self.lost? || self.won?
     end
