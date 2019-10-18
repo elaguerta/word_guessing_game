@@ -1,14 +1,19 @@
 require 'httparty'
 
 class Game
-    attr_reader :secret_word, :game_word
+    attr_reader :secret_word, :game_word, :dictionary
 
     # Initialize: pull the dictionary from the REACH API. Pick a secret word at random from the dictionary
     # if it has not already been passed as an argument. Pass in the players. 
-    def initialize(player, passed_word = nil)
-        url = "http://app.linkedin-reach.io/words"
+    def initialize(player, passed_word = nil, difficulty = nil)
+        url = "http://app.linkedin-reach.io/words?"
+        
+        if difficulty
+            url += "difficulty=#{difficulty}"
+        end
+
         response = HTTParty.get(url)
-        dictionary = response.parsed_response.split("\n")
+        @dictionary = response.parsed_response.split("\n")
         passed_word ||= dictionary.sample
 
         @secret_word = passed_word

@@ -11,6 +11,17 @@ class Player
         @correct_guesses = []
     end
 
+    def get_difficulty
+        print "Choose a difficulty level from 1 (easiest) to 10 (hardest): "
+        level = gets.chomp.to_i
+        if (1..10).include? level
+            return level
+        else
+            puts "Not a valid difficulty level! Choose again.\n\n"
+            self.get_difficulty
+        end
+    end
+
     #Ask the player for a valid guess. If it's not valid, ask again.
     def get_guess
         print "Enter 1 to guess a letter, or 2 to guess a word: "
