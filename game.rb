@@ -1,11 +1,12 @@
 require 'httparty'
+require 'byebug'
 
 class Game
     attr_reader :secret_word, :game_word, :dictionary
 
     # Initialize: pull the dictionary from the REACH API. Pick a secret word at random from the dictionary
     # if it has not already been passed as an argument. Pass in the players. 
-    def initialize(player, passed_word = nil, difficulty = nil)
+    def initialize(player, difficulty = nil, passed_word = nil)
         url = "http://app.linkedin-reach.io/words?"
         
         if difficulty
@@ -76,10 +77,42 @@ class Game
 
     def won?
         if @secret_word == @game_word.split(" ").join
+            score = @player.guesses_remaining * @secret_word.length
             print @game_word + "\n\n"
-            print "You won!!!\n\n"
+            print "You won!!! Score: #{score}\n\n"
+            self.add_to_leaderboard(score)
             return true
         end
+    end
+
+    def add_to_leaderboard(score)
+        count = 0
+        leaderboard = []
+
+        File.foreach("leaderboard.txt") do |line| 
+            if count < 4
+                leaderboard += [line]
+            else
+                break
+            end
+            count += 1
+        end
+
+        leaderboard.each_with_index do |line, idx|
+            this_score = line.split(" ")[1].to_i
+            if score > this_score
+                print "You made it to the leaderboard! Enter your initials: "
+                player_handle = gets.chomp
+                leaderboard[idx] = "#{player_handle} #{score}\n"
+                break
+            end
+        end
+        puts leaderboard.join
+        File.write("leaderboard.txt", leaderboard.join)
+    end
+
+    def clear_leaderboard
+        File.write("leaderboard.txt", "name 0\n"*4)
     end
 
 end

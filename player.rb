@@ -31,15 +31,17 @@ class Player
             guess = gets.chomp
             if valid_letter_guess?(guess)
                 return guess
+            else
+                self.get_guess
             end
         elsif choice == "2"
             print "Guess a word: "
             guess = gets.chomp
             if valid_word_guess?(guess)
                 return guess
+            else
+                self.get_guess
             end
-        else
-            self.get_guess
         end
     end
 
