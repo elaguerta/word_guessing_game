@@ -24,12 +24,13 @@ class Player
 
     #Ask the player for a valid guess. If it's not valid, ask again.
     def get_guess
+        puts "#{@name}'s turn!"
         print "Enter 1 to guess a letter, or 2 to guess a word: "
         choice = gets.chomp.downcase
         if choice == "1"
             print "Guess a letter: "
             guess = gets.chomp.downcase
-            if valid_letter_guess?(guess)
+            if valid_letter_guess?(guess)``
                 return guess
             else
                 self.get_guess

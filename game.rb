@@ -10,16 +10,27 @@ class Game
     def initialize(player, difficulty = nil, passed_word = nil)
         url = "http://app.linkedin-reach.io/words?"
         
+        #set the difficulty, get the secret word or phrase
         if difficulty
             url += "difficulty=#{difficulty}"
         end
-
         response = HTTParty.get(url)
         @dictionary = response.parsed_response.split("\n")
         passed_word ||= dictionary.sample.downcase
-
         @secret_word = passed_word.downcase
-        @player = player 
+
+
+        #initialize the list of players. Current player is the first player. 
+        @players = [player]
+        @curr_player_index = 0
+        @curr_player = @players[@curr_player_index]
+ 
+        print "Enter 1 for one player, or 2 for two player: "
+        player_mode = gets.chomp
+        if player_mode == "2"
+            player_2 = Player.new("Player_2")
+            @players += [player_2]
+        end
 
         @game_word = ""
         @secret_word.each_char do |char|
@@ -39,18 +50,22 @@ class Game
     # Either way update the player on their incorrect guesses and guesses remaining. 
     def play_round
         puts @game_word + "\n\n"
-        guess = @player.get_guess
+        guess = @curr_player.get_guess
         if correct_guess?(guess)
-            @player.correct_guesses += [guess]
+            @curr_player.correct_guesses += [guess]
         else
-            @player.guesses_remaining -= 1
-            @player.incorrect_guesses += [guess]
+            @curr_player.guesses_remaining -= 1
+            @curr_player.incorrect_guesses += [guess]
         end
-        puts "Incorrect guesses: #{@player.incorrect_guesses}"
-        puts "Guesses remaining: #{@player.guesses_remaining}"
-        puts File.read("flower#{@player.guesses_remaining}.txt")
+        puts "#{@curr_player.name}'s' incorrect guesses: #{@curr_player.incorrect_guesses}"
+        puts "#{@curr_player.name}'s guesses remaining: #{@curr_player.guesses_remaining}"
+        puts "#{@curr_player.name}'s available points: #{@curr_player.correct_guesses.length * @secret_word.length}"
+        puts "#{@curr_player.name}'s flower: "
+        puts File.read("flower#{@curr_player.guesses_remaining}.txt")
         puts "_____________________________________"
         puts "\n\n"
+        @curr_player_index = (@curr_player_index + 1) % 2
+        @curr_player = @players[@curr_player_index]
     end
 
     def correct_guess?(guess)
@@ -89,14 +104,13 @@ class Game
     end
 
     def lost?
-        if @player.guesses_remaining == 0
+        if @players.any?{ |player| player.guesses_remaining == 0}
             puts "You lost. The secret word is: #{@secret_word}\n\n"
             return true
         end
     end
 
     def won?
-        debugger
         game_phrase = @game_word.split("  ")
         current_phrase = ""
 
@@ -105,9 +119,9 @@ class Game
         end
 
         if @secret_word == current_phrase[0...-1] #ignore last space in current phrase
-            score = @player.guesses_remaining * @secret_word.length
+            score = @curr_player.correct_guesses.length * @secret_word.length
             print @game_word + "\n\n"
-            print "You won!!! Score: #{score}\n\n"
+            print "#{@curr_player.name} won!!! Score: #{score}\n\n"
             self.add_to_leaderboard(score)
             return true
         end
