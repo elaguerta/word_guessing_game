@@ -23,17 +23,10 @@ class Game
     # Either way update the player on their incorrect guesses and guesses remaining. 
     def play_round
         puts @game_word + "\n\n"
-        guess = @player.get_guess[0]
-        if @secret_word.include?(guess)
-            puts "That letter is in the secret word!"
+        guess = @player.get_guess
+        if correct_guess?(guess)
             @player.correct_guesses += [guess]
-            (0..@secret_word.length).each do |index|
-                if @secret_word[index] == guess
-                    @game_word[index * 2] = guess
-                end
-            end
         else
-            puts "That letter is not in the secret word."
             @player.guesses_remaining -= 1
             @player.incorrect_guesses += [guess]
         end
@@ -41,6 +34,27 @@ class Game
         puts "Guesses remaining: #{@player.guesses_remaining}"
         puts "_____________________________________"
         puts "\n\n"
+    end
+
+    def correct_guess?(guess)
+        if guess.length == 1
+            if @secret_word.include?(guess)
+                puts "That letter is in the secret word!"
+                (0..@secret_word.length).each do |index|
+                    if @secret_word[index] == guess
+                        @game_word[index * 2] = guess
+                    end
+                end
+            else
+                puts "That letter is not in the secret word."
+            end
+        else
+            if @secret_word == guess
+                @game_word = @secret_word.split("").join(" ")
+            else
+                puts "That word is not the secret word."
+            end       
+        end
     end
 
     # game_over: check if the win/lose conditions are met
@@ -53,7 +67,6 @@ class Game
             puts "You lost. The secret word is: #{@secret_word}\n\n"
             return true
         end
-
     end
 
     def won?
@@ -63,4 +76,5 @@ class Game
             return true
         end
     end
+
 end
