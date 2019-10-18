@@ -5,7 +5,8 @@ class Game
     attr_reader :secret_word, :game_word, :dictionary
 
     # Initialize: pull the dictionary from the REACH API. Pick a secret word at random from the dictionary
-    # if it has not already been passed as an argument. Pass in the players. 
+    # if it has not already been passed as an argument.
+    # The secret word may be a phrase (string with spaces), and it may contain letters, numbers, and  
     def initialize(player, difficulty = nil, passed_word = nil)
         url = "http://app.linkedin-reach.io/words?"
         
@@ -15,11 +16,20 @@ class Game
 
         response = HTTParty.get(url)
         @dictionary = response.parsed_response.split("\n")
-        passed_word ||= dictionary.sample
+        passed_word ||= dictionary.sample.downcase
 
-        @secret_word = passed_word
-        @game_word = '_ '* @secret_word.length
+        @secret_word = passed_word.downcase
         @player = player 
+
+        @game_word = ""
+        @secret_word.each_char do |char|
+            add_char = "_"
+            if char == " "
+                add_char = " "
+            end
+            @game_word += add_char + " "
+        end
+        
     end
 
     # play_round: implements basic game logic. Get a guess from the player. 
@@ -56,10 +66,19 @@ class Game
                 puts "That letter is not in the secret word."
             end
         else
-            if @secret_word == guess
-                @game_word = @secret_word.split("").join(" ")
+            phrase = @secret_word.split(" ")
+            game_phrase = @game_word.split("  ")
+
+            if phrase.include?(guess)
+                puts "That word is correct!"
+                phrase.each_with_index do |word,idx|
+                    if word == guess
+                        game_phrase[idx] = guess.split("").join(" ")
+                        @game_word = game_phrase.join("  ")
+                    end
+                end
             else
-                puts "That word is not the secret word."
+                puts "That word is not a correct guess."
             end       
         end
     end
@@ -77,7 +96,15 @@ class Game
     end
 
     def won?
-        if @secret_word == @game_word.split(" ").join
+        debugger
+        game_phrase = @game_word.split("  ")
+        current_phrase = ""
+
+        game_phrase.each do |word|
+            current_phrase += word.split(" ").join + " "
+        end
+
+        if @secret_word == current_phrase[0...-1] #ignore last space in current phrase
             score = @player.guesses_remaining * @secret_word.length
             print @game_word + "\n\n"
             print "You won!!! Score: #{score}\n\n"

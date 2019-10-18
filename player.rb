@@ -28,7 +28,7 @@ class Player
         choice = gets.chomp.downcase
         if choice == "1"
             print "Guess a letter: "
-            guess = gets.chomp
+            guess = gets.chomp.downcase
             if valid_letter_guess?(guess)
                 return guess
             else
@@ -36,7 +36,7 @@ class Player
             end
         elsif choice == "2"
             print "Guess a word: "
-            guess = gets.chomp
+            guess = gets.chomp.downcase
             if valid_word_guess?(guess)
                 return guess
             else
@@ -47,7 +47,7 @@ class Player
 
     #Valid guesses are letters that have not been guessed before. 
     def valid_letter_guess?(guess)
-        if !guess.match?(/\A[a-z]\z/)
+        if !guess.match?(/\A([a-z]|[-]|\d)\z/)
             puts "Not a letter! Guess again."
             return false
         elsif @incorrect_guesses.include?(guess) || @correct_guesses.include?(guess)
@@ -60,7 +60,7 @@ class Player
 
     #Valid word guesses are words made of two or more letters that have not been guessed before. 
     def valid_word_guess?(guess)
-        if !guess.match?(/\A[a-z]{2,}\z/)
+        if !guess.match?(/\A([a-z]|[-]|\d){2,}\z/)       #(/\A[a-z]{2,}\z/)
             puts "Not a legal word guess! Guess again."
             return false
         elsif @incorrect_guesses.include?(guess) || @correct_guesses.include?(guess)
