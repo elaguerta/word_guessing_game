@@ -38,6 +38,7 @@ class Game
         end
         puts "Incorrect guesses: #{@player.incorrect_guesses}"
         puts "Guesses remaining: #{@player.guesses_remaining}"
+        puts File.read("flower#{@player.guesses_remaining}.txt")
         puts "_____________________________________"
         puts "\n\n"
     end
