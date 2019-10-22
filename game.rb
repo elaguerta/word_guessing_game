@@ -4,13 +4,18 @@ require 'byebug'
 class Game
     attr_reader :secret_word, :game_word, :dictionary
 
-    # Initialize: pull the dictionary from the REACH API. Pick a secret word at random from the dictionary
-    # if it has not already been passed as an argument.
-    # The secret word may be a phrase (string with spaces), and it may contain letters, numbers, and  
+    # Initialize: pull the dictionary from the REACH API, filtered based on 
+    # difficulty level. If there is no secret word passed with the initialization,
+    # pick a random one from the dictionary.
+    # The secret word may be a phrase (string with spaces), and it may contain letters, numbers, and hyphens.
+
+    # Note: this code refers uses the @secret_word variable to store the target string that the players 
+    # are trying to guess, but @secret_word could be a phrase of more than one word. 
+
     def initialize(player, difficulty = nil, passed_word = nil)
         url = "http://app.linkedin-reach.io/words?"
         
-        #set the difficulty, get the secret word or phrase
+        #Set the difficulty. Get dictionary filtered on difficulty. Initialize secret word.
         if difficulty
             url += "difficulty=#{difficulty}"
         end
@@ -20,11 +25,14 @@ class Game
         @secret_word = passed_word.downcase
 
 
-        #initialize the list of players. Current player is the first player. 
+        # Initialize the list of players. This can support two players.  
+        # Set player index to 0, which will support keeping track of two players. 
         @players = [player]
         @curr_player_index = 0
         @curr_player = @players[@curr_player_index]
- 
+
+        #Give the user the option for two players. 
+        #If two players are not specified, default to the single player passed to the intialization.
         print "Enter 1 for one player, or 2 for two player: "
         player_mode = gets.chomp
         if player_mode == "2"
@@ -43,11 +51,17 @@ class Game
         
     end
 
-    # play_round: implements basic game logic. Get a guess from the player. 
-    # If it's a correct guess, show the occurences of that letter in the secret word. Update
-    # player's correct guesses list.
+    # play_round implements basic game logic:
+    # Get a guess from the player. 
+    # If it's a correct guess, show the occurences of that letter in the secret word. 
+    # Update player's correct guesses list.
     # If it's not a correct guess, let the player know, update incorrect guess list.
-    # Either way update the player on their incorrect guesses and guesses remaining. 
+    # Either way update the player on their incorrect guesses, guesses remaining, and available points; using a flower graphic to illustrate 
+    # guesses used. 
+    
+    # "Available points" is calculatd as the length of the secret word times the player's correct guesses so far. 
+    # In the two player case, this is intended to incentify cooperation for as long as possible. 
+
     def play_round
         puts @game_word + "\n\n"
         guess = @curr_player.get_guess
@@ -68,6 +82,9 @@ class Game
         @curr_player = @players[@curr_player_index]
     end
 
+    # Correct guesses come in two cases: a letter (string of length 1) or a word. 
+    # It is not possible for a player to guess the whole phrase.
+    # Note: This method could be extended to support guesses of a whole phrase
     def correct_guess?(guess)
         if guess.length == 1
             if @secret_word.include?(guess)
@@ -98,11 +115,12 @@ class Game
         end
     end
 
-    # game_over: check if the win/lose conditions are met
+    # Check if the win/lose conditions are met
     def game_over?
         self.lost? || self.won?
     end
 
+    # Game is lost if any player has used all 6 of their guesses. 
     def lost?
         if @players.any?{ |player| player.guesses_remaining == 0}
             puts "You lost. The secret word is: #{@secret_word}\n\n"
@@ -110,6 +128,7 @@ class Game
         end
     end
 
+    # Game is won when the word visible to the players (the game word) matches the secret word.
     def won?
         game_phrase = @game_word.split("  ")
         current_phrase = ""
@@ -127,6 +146,9 @@ class Game
         end
     end
 
+    # Grab the first 4 lines of the local leaderboard.txt file, which stores the top 4 player
+    # handles and scores so far. Check if the winning score makes it to the top 4, if so,
+    # get the handle to associate with the score and re-write the file at the correct spot.
     def add_to_leaderboard(score)
         count = 0
         leaderboard = []
@@ -153,6 +175,7 @@ class Game
         File.write("leaderboard.txt", leaderboard.join)
     end
 
+    #method clearing the leaderboard file
     def clear_leaderboard
         File.write("leaderboard.txt", "name 0\n"*4)
     end

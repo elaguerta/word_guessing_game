@@ -11,6 +11,8 @@ class Player
         @correct_guesses = []
     end
 
+    # Get difficulty passes an integer to the REACH API through the Game class, used 
+    # to filter the words in the dictionary. 
     def get_difficulty
         print "Choose a difficulty level from 1 (easiest) to 10 (hardest): "
         level = gets.chomp.to_i
@@ -22,7 +24,9 @@ class Player
         end
     end
 
-    #Ask the player for a valid guess. If it's not valid, ask again.
+    # Ask the player for a valid guess. If it's not valid, ask again.
+    # Note: This method could be improved by checking that the letter or word choice input is a well-formed 1 or 2. 
+    # Note: This method could be extended by adding support to guess a whole phrase. 
     def get_guess
         puts "#{@name}'s turn!"
         print "Enter 1 to guess a letter, or 2 to guess a word: "
@@ -30,7 +34,7 @@ class Player
         if choice == "1"
             print "Guess a letter: "
             guess = gets.chomp.downcase
-            if valid_letter_guess?(guess)``
+            if valid_letter_guess?(guess)
                 return guess
             else
                 self.get_guess
@@ -46,7 +50,7 @@ class Player
         end
     end
 
-    #Valid guesses are letters that have not been guessed before. 
+    #Valid letter guesses are letters that have not been guessed before. 
     def valid_letter_guess?(guess)
         if !guess.match?(/\A([a-z]|[-]|\d)\z/)
             puts "Not a letter! Guess again."
@@ -59,9 +63,10 @@ class Player
         end
     end
 
-    #Valid word guesses are words made of two or more letters that have not been guessed before. 
+    # Valid word guesses are words made of two or more letters and numbers
+    # that have not been guessed before. Hypens are supported. 
     def valid_word_guess?(guess)
-        if !guess.match?(/\A([a-z]|[-]|\d){2,}\z/)       #(/\A[a-z]{2,}\z/)
+        if !guess.match?(/\A([a-z]|[-]|\d){2,}\z/)   
             puts "Not a legal word guess! Guess again."
             return false
         elsif @incorrect_guesses.include?(guess) || @correct_guesses.include?(guess)
